@@ -1,0 +1,464 @@
+body {
+    font-family: 'Inter', 'Arial', sans-serif;
+    background: linear-gradient(135deg, #12073d, #2c5aa0);
+    color: #000;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.container {
+    max-width: 600px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    max-height: 800px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.title {
+    background: linear-gradient(135deg, #4a4a8a, #6a6aff);
+    color: #ffffff;
+    margin: 0;
+    padding: 15px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+/* Chatbox Styling */
+.chat-box {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 140px);
+    /* Adjust to leave space for input box */
+    padding-bottom: 20px;
+    /* Add space for smooth scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Custom Scrollbar */
+.chat-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+/* Styling for the scrollbar in Firefox */
+.chat-box {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.4) rgba(255, 255, 255, 0.5);
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 12px 18px;
+    border-radius: 15px;
+    font-size: 15px;
+    max-width: 80%;
+    word-wrap: break-word;
+    position: relative;
+    transition: all 0.3s ease;
+    align-self: flex-start;
+}
+
+.user {
+    background: linear-gradient(135deg, #e0e0e0, #f0f0f0);
+    align-self: flex-end;
+    color: #000;
+    margin-left: auto;
+    text-align: right;
+    animation: slideInRight 0.4s ease-out;
+}
+
+.bot {
+    background: linear-gradient(135deg, #e6e6fa, #f0f8ff);
+    align-self: flex-start;
+    color: #000;
+    margin-right: auto;
+    text-align: left;
+    animation: slideInLeft 0.4s ease-out;
+}
+
+.input-container {
+    display: flex;
+    padding: 15px 10px;
+    background-color: #f0f0f0;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+#user-input {
+    flex-grow: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #d0d0d0;
+    font-size: 15px;
+    background: #ffffff;
+    color: #000;
+    transition: all 0.3s ease;
+    margin-right: 10px;
+    min-width: 60%;
+}
+
+#user-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(100, 100, 255, 0.2);
+}
+
+#send-btn {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #4a4aff, #7070ff);
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 12px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    min-width: 20%;
+}
+
+#send-btn:hover {
+    background: linear-gradient(135deg, #6a6aff, #9090ff);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#send-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.thinking {
+    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+    color: #666;
+    font-style: italic;
+}
+
+@media (max-width: 600px) {
+    .container {
+        width: 95%;
+        height: 95vh;
+        max-height: none;
+        border-radius: 0;
+    }
+
+    .chat-box {
+        padding: 10px;
+    }
+
+    .input-container {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    #user-input {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    #send-btn {
+        width: 107%;
+        min-width: auto;
+        margin-right: 0;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.message:hover {
+    animation: pulse 0.5s ease;
+}
+
+/* Decorative Background Shapes */
+.background-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    animation: roamAround 12s linear infinite;
+}
+
+/* Shapes with different sizes and animation durations */
+.shape1 {
+    width: 30px;
+    height: 30px;
+    animation-duration: 10s;
+}
+
+.shape2 {
+    width: 40px;
+    height: 40px;
+    animation-duration: 9s;
+}
+
+.shape3 {
+    width: 35px;
+    height: 35px;
+    animation-duration: 11s;
+}
+
+.shape4 {
+    width: 25px;
+    height: 25px;
+    animation-duration: 8s;
+}
+
+.shape5 {
+    width: 30px;
+    height: 30px;
+    animation-duration: 7s;
+}
+
+.shape6 {
+    width: 45px;
+    height: 45px;
+    animation-duration: 12s;
+}
+
+.shape7 {
+    width: 32px;
+    height: 32px;
+    animation-duration: 10s;
+}
+
+.shape8 {
+    width: 28px;
+    height: 28px;
+    animation-duration: 13s;
+}
+
+.shape9 {
+    width: 38px;
+    height: 38px;
+    animation-duration: 14s;
+}
+
+.shape10 {
+    width: 22px;
+    height: 22px;
+    animation-duration: 15s;
+}
+
+.shape11 {
+    width: 33px;
+    height: 33px;
+    animation-duration: 10s;
+}
+
+.shape12 {
+    width: 27px;
+    height: 27px;
+    animation-duration: 8s;
+}
+
+.shape13 {
+    width: 36px;
+    height: 36px;
+    animation-duration: 9s;
+}
+
+.shape14 {
+    width: 29px;
+    height: 29px;
+    animation-duration: 11s;
+}
+
+.shape15 {
+    width: 40px;
+    height: 40px;
+    animation-duration: 12s;
+}
+
+.shape16 {
+    width: 34px;
+    height: 34px;
+    animation-duration: 8s;
+}
+
+.shape17 {
+    width: 31px;
+    height: 31px;
+    animation-duration: 10s;
+}
+
+.shape18 {
+    width: 25px;
+    height: 25px;
+    animation-duration: 9s;
+}
+
+.shape19 {
+    width: 39px;
+    height: 39px;
+    animation-duration: 13s;
+}
+
+.shape20 {
+    width: 28px;
+    height: 28px;
+    animation-duration: 12s;
+}
+
+.shape21 {
+    width: 42px;
+    height: 42px;
+    animation-duration: 10s;
+}
+
+.shape22 {
+    width: 30px;
+    height: 30px;
+    animation-duration: 7s;
+}
+
+.shape23 {
+    width: 44px;
+    height: 44px;
+    animation-duration: 12s;
+}
+
+.shape24 {
+    width: 38px;
+    height: 38px;
+    animation-duration: 15s;
+}
+
+.shape25 {
+    width: 33px;
+    height: 33px;
+    animation-duration: 9s;
+}
+
+.shape26 {
+    width: 27px;
+    height: 27px;
+    animation-duration: 11s;
+}
+
+.shape27 {
+    width: 29px;
+    height: 29px;
+    animation-duration: 8s;
+}
+
+.shape28 {
+    width: 31px;
+    height: 31px;
+    animation-duration: 10s;
+}
+
+.shape29 {
+    width: 35px;
+    height: 35px;
+    animation-duration: 13s;
+}
+
+.shape30 {
+    width: 41px;
+    height: 41px;
+    animation-duration: 9s;
+}
+
+/* Roaming Animation for the Shapes */
+@keyframes roamAround {
+    0% {
+        transform: translate(var(--random-x), var(--random-y));
+    }
+
+    20% {
+        transform: translate(calc(var(--random-x) + 10vw), calc(var(--random-y) + 10vh));
+    }
+
+    40% {
+        transform: translate(calc(var(--random-x) + 20vw), calc(var(--random-y) + 20vh));
+    }
+
+    60% {
+        transform: translate(calc(var(--random-x) + 30vw), calc(var(--random-y) + 30vh));
+    }
+
+    80% {
+        transform: translate(calc(var(--random-x) + 40vw), calc(var(--random-y) + 40vh));
+    }
+
+    100% {
+        transform: translate(calc(var(--random-x) + 50vw), calc(var(--random-y) + 50vh));
+    }
+}

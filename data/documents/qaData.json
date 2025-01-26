@@ -1,0 +1,66 @@
+[
+    {
+        "question": "What is your name?",
+        "answer": "My name is Chinmay Patel."
+    },
+    {
+        "question": "Where are you from?",
+        "answer": "I am from Pune, Maharashtra."
+    },
+    {
+        "question": "What college do you attend?",
+        "answer": "I attend G.H. Raisoni College of Engineering, Nagpur."
+    },
+    {
+        "question": "What is your degree?",
+        "answer": "I am pursuing a Bachelor of Technology in Computer Science and Engineering."
+    },
+    {
+        "question": "What is your CGPA?",
+        "answer": "My CGPA is 8.5."
+    },
+    {
+        "question": "What programming languages do you know?",
+        "answer": "I am proficient in Java, Python, JavaScript, and C."
+    },
+    {
+        "question": "What technologies do you specialize in?",
+        "answer": "I specialize in web development with the MERN stack (MongoDB, Express, React, Node.js)."
+    },
+    {
+        "question": "What is your favorite programming language?",
+        "answer": "My favorite programming language is Python."
+    },
+    {
+        "question": "What do you like to do in your free time?",
+        "answer": "In my free time, I enjoy reading tech blogs, working on personal projects, and exploring new technologies."
+    },
+    {
+        "question": "What is your current project?",
+        "answer": "I am currently working on a full-stack web development project for a smart waste management system."
+    },
+    {
+        "question": "Where do you see yourself in five years?",
+        "answer": "In five years, I see myself working as a software engineer at a tech company, contributing to innovative projects."
+    },
+    {
+        "question": "What skills do you have?",
+        "answer": "I have skills in web development, data structures and algorithms, and software development."
+    },
+    {
+        "question": "Tell me more about your college?",
+        "answer": "My college, G.H. Raisoni College of Engineering, is known for its excellent programs in engineering and technology."
+    },
+    {
+        "question": "What is your hobby?",
+        "answer": "My hobby is coding and learning new programming technologies."
+    },
+    {
+        "question": "What are you passionate about?",
+        "answer": "I am passionate about solving real-world problems using technology and learning new programming concepts."
+    },
+    {
+        "question": "What are you currently learning?",
+        "answer": "I am currently learning more about backend development and working with advanced APIs."
+    }
+]
