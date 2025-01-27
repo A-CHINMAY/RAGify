@@ -67,13 +67,11 @@ app.use(
             if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
                 callback(null, true);
             } else {
-                console.warn(`Blocked request from origin: ${origin}`); // Log blocked origins for debugging
                 callback(new Error('Not allowed by CORS'));
             }
         },
         methods: ['GET', 'POST'],
         allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true, // Allow credentials (cookies, authorization headers, etc.)
     })
 );
 
@@ -127,7 +125,6 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Not Found' });
 });
 
-// Enhanced Error Handling
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     console.error('Error stack:', err.stack); // Log the stack trace for more insight
