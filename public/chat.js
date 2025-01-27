@@ -17,15 +17,10 @@ function handleSendMessage() {
 
     displayMessage(userInput, 'user');
     userInputField.value = ''; // Clear input field
-    userInputField.focus(); // Focus on the input field after sending the message
+    userInputField.focus();
 
-    // Disable input during processing
     toggleInputState(true);
-
-    // Display "thinking..." message
     showThinkingMessage();
-
-    // Generate bot response
     generateBotResponse(userInput);
 }
 
@@ -33,15 +28,12 @@ function handleSendMessage() {
 function displayMessage(message, sender) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', sender);
-
     const sanitizedMessage = escapeHtml(message);
     messageElement.textContent = sanitizedMessage;
-
     chatMessages.appendChild(messageElement);
-    scrollToBottom(); // Ensure chat scrolls to the bottom when a new message is added
+    scrollToBottom();
 }
 
-// Escape HTML to avoid XSS attacks
 function escapeHtml(unsafe) {
     return unsafe
         .replace(/&/g, "&amp;")
@@ -51,7 +43,6 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// Function to show the "thinking..." message
 function showThinkingMessage() {
     const thinkingElement = document.createElement('div');
     thinkingElement.classList.add('message', 'bot', 'thinking');
@@ -64,12 +55,10 @@ function showThinkingMessage() {
     sendButton.disabled = true;
 }
 
-// Function to scroll the chat container to the bottom
 function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Function to toggle input and button states
 function toggleInputState(disabled) {
     userInputField.disabled = disabled;
     sendButton.disabled = disabled;
@@ -78,61 +67,83 @@ function toggleInputState(disabled) {
     }
 }
 
-// Function to generate bot response
-async function generateBotResponse(userInput) {
-    const apiUrl =
-        window.location.hostname === 'localhost'
-            ? 'http://localhost:3000/api/chat'
-            : 'https://ragify.onrender.com/api/chat';
-
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ query: userInput })
-        });
-
-        // Remove "thinking..." message
-        const thinkingMessage = document.getElementById('thinking-message');
-        if (thinkingMessage) {
-            thinkingMessage.remove();
-        }
-
-        const data = await response.json();
-        const botResponse = data.response?.trim() || "Sorry, I couldn't understand that.";
-
-        // Display the bot response after a delay
-        setTimeout(() => {
-            displayMessage(botResponse, 'bot');
-        }, 1000); // 1-second delay
-    } catch (error) {
-        console.error('Error:', error);
-        displayMessage('Sorry, there was an error processing your request.', 'bot');
-    } finally {
-        toggleInputState(false); // Re-enable input
-    }
+// Function to handle API errors
+function handleApiError(error) {
+    console.error('API Error:', error);
+    const errorMessage = 'Sorry, there was an error connecting to the server. Please try again.';
+    displayMessage(errorMessage, 'bot');
+    toggleInputState(false);
 }
 
-// Function to set random positions for shapes
+// Function to generate bot response
+async function generateBotResponse(userInput) {
+    const apiUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:3000/api/chat'
+        : 'https://ragify.onrender.com/api/chat';
+
+    const retries = 3; // Number of retry attempts
+    let attempt = 0;
+
+    while (attempt < retries) {
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Origin': window.location.origin
+                },
+                credentials: 'include',
+                body: JSON.stringify({ query: userInput })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Remove thinking message
+            const thinkingMessage = document.getElementById('thinking-message');
+            if (thinkingMessage) {
+                thinkingMessage.remove();
+            }
+
+            const data = await response.json();
+            const botResponse = data.response?.trim() || "Sorry, I couldn't understand that.";
+
+            // Display the bot response after a small delay
+            setTimeout(() => {
+                displayMessage(botResponse, 'bot');
+            }, 500);
+
+            break; // Success - exit the retry loop
+        } catch (error) {
+            attempt++;
+            console.error(`Attempt ${attempt} failed:`, error);
+
+            if (attempt === retries) {
+                handleApiError(error);
+            } else {
+                // Wait before retrying (exponential backoff)
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+            }
+        }
+    }
+
+    toggleInputState(false);
+}
+
+// Set random positions for shapes
 function setRandomPositions() {
     const shapes = document.querySelectorAll('.shape');
-
     shapes.forEach((shape) => {
         const shapeWidth = shape.offsetWidth;
         const shapeHeight = shape.offsetHeight;
-
-        // Generate random positions within the visible area
         const randomX = Math.max(0, Math.random() * (window.innerWidth - shapeWidth));
         const randomY = Math.max(0, Math.random() * (window.innerHeight - shapeHeight));
-
-        // Apply random position as CSS variables
         shape.style.setProperty('--random-x', `${randomX}px`);
         shape.style.setProperty('--random-y', `${randomY}px`);
     });
 }
 
-// Set random positions on page load and adjust on window resize
+// Initialize shapes
 window.addEventListener('load', setRandomPositions);
 window.addEventListener('resize', setRandomPositions);

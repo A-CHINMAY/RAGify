@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.set('trust proxy', true);
+app.set('trust proxy', 1); // Trust first proxy - important for Render
 
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -26,19 +26,24 @@ if (!fs.existsSync(cacheDir)) {
     fs.mkdirSync(cacheDir, { recursive: true });
 }
 
-// Enhanced Security Middleware
+// Simplified CORS configuration
+app.use(cors({
+    origin: ['https://ragify.vercel.app', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
+// Modified Helmet configuration to allow connection from Vercel
 app.use(
     helmet({
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'"],
-            },
-        },
+        contentSecurityPolicy: false, // Disable CSP temporarily
+        crossOriginEmbedderPolicy: false,
+        crossOriginResourcePolicy: false
     })
 );
 
-// More Dynamic Rate Limiting
+// Rate limiting
 const limiter = rateLimit({
     windowMs: NODE_ENV === 'production' ? 15 * 60 * 1000 : 30 * 60 * 1000,
     max: NODE_ENV === 'production' ? 100 : 500,
@@ -51,20 +56,11 @@ app.use('/api/', limiter);
 // Middleware Configurations
 app.use(
     express.json({
-        limit: process.env.PAYLOAD_LIMIT || '10kb',
+        limit: process.env.PAYLOAD_LIMIT || '10mb',
         strict: true,
     })
 );
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-app.use(cors({
-    origin: 'https://ragify.vercel.app',  // Allow only your frontend domain
-    methods: ['GET', 'POST'],             // Allow the necessary HTTP methods
-    credentials: true                     // Allow cookies and credentials
-}));
-
-// Handle Preflight Requests (OPTIONS requests)
-app.options('*', cors());
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Conditional Logging
 if (NODE_ENV === 'development') {
@@ -72,7 +68,6 @@ if (NODE_ENV === 'development') {
 }
 
 // Serve Static Files (Optional for API-only backend)
-// Remove if not required
 app.use(
     express.static(path.join(__dirname, 'public'), {
         maxAge: NODE_ENV === 'production' ? '1d' : '1h',
@@ -83,10 +78,11 @@ app.use(
 
 // Chat Controller Initialization
 const chatController = new ChatController();
-chatController.initializeIfNeeded().catch(console.error);
+await chatController.initializeIfNeeded().catch(console.error);
 
 // API Routes
 app.post('/api/chat', async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', 'https://ragify.vercel.app');
     try {
         await chatController.handleChatRequest(req, res);
     } catch (error) {
@@ -96,6 +92,7 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', 'https://ragify.vercel.app');
     res.json({
         status: 'healthy',
         environment: NODE_ENV,
@@ -103,12 +100,7 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Redirect Root to Frontend
-app.get('/', (req, res) => {
-    res.redirect('https://ragify.vercel.app'); // Update with your Vercel frontend URL
-});
-
-// Favicon Handling (Optional)
+// Favicon Handling
 app.get('/favicon.ico', (req, res) => res.status(204));
 
 // Error Handling Middleware
@@ -118,7 +110,7 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
-    console.error('Error stack:', err.stack); // Log the stack trace for more insight
+    console.error('Error stack:', err.stack);
     res.status(500).json({
         error: 'Server Error',
         message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
