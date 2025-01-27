@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import ChatController from './controllers/chatController.js';
+import ChatController from './src/controllers/chatController.js';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 
