@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // CORS with Dynamic Origin Configuration
 const allowedOrigins = {
-    production: ['https://ragify.vercel.app/','https://ragify-a-chinmays-projects.vercel.app/'],
+    production: ['https://ragify.vercel.app/', 'https://ragify-a-chinmays-projects.vercel.app/'],
     development: ['http://localhost:3000', 'http://127.0.0.1:5500']
 };
 
@@ -67,7 +67,7 @@ if (NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-// Static File Serving with Enhanced Caching
+// Serve Static Files from the Correct Directory
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: NODE_ENV === 'production' ? '1d' : '1h',
     etag: true,
@@ -96,7 +96,10 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Fallback Routes
+// Favicon Handling (Optional)
+app.get('/favicon.ico', (req, res) => res.status(204));
+
+// Fallback Route to Serve index.html
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
