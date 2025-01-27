@@ -14,77 +14,75 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Memory usage monitoring
+const logMemoryUsage = () => {
+    const used = process.memoryUsage();
+    console.log('Memory usage:');
+    for (let key in used) {
+        console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+    }
+};
+
 const app = express();
-app.set('trust proxy', 1); // Trust first proxy - important for Render
+app.set('trust proxy', 1);
 
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Ensure the cache directory exists for transformers library
-const cacheDir = path.join(__dirname, 'node_modules/@xenova/transformers/.cache');
-if (!fs.existsSync(cacheDir)) {
-    fs.mkdirSync(cacheDir, { recursive: true });
-}
-
-// Simplified CORS configuration
+// Simplified CORS
 app.use(cors({
     origin: ['https://ragify.vercel.app', 'http://localhost:3000'],
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST'],
     credentials: true
 }));
 
-// Modified Helmet configuration to allow connection from Vercel
-app.use(
-    helmet({
-        contentSecurityPolicy: false, // Disable CSP temporarily
-        crossOriginEmbedderPolicy: false,
-        crossOriginResourcePolicy: false
-    })
-);
+// Lightweight Helmet config
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
+}));
 
-// Rate limiting
+// Memory-conscious rate limiting
 const limiter = rateLimit({
-    windowMs: NODE_ENV === 'production' ? 15 * 60 * 1000 : 30 * 60 * 1000,
-    max: NODE_ENV === 'production' ? 100 : 500,
+    windowMs: 15 * 60 * 1000,
+    max: 50, // Reduced from 100 to 50 for free tier
     standardHeaders: true,
-    legacyHeaders: false,
-    message: 'Rate limit exceeded. Please try again later.',
+    legacyHeaders: false
 });
 app.use('/api/', limiter);
 
-// Middleware Configurations
-app.use(
-    express.json({
-        limit: process.env.PAYLOAD_LIMIT || '10mb',
-        strict: true,
-    })
-);
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Reduced payload limits
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// Conditional Logging
+// Conditional logging only in development
 if (NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-// Serve Static Files (Optional for API-only backend)
-app.use(
-    express.static(path.join(__dirname, 'public'), {
-        maxAge: NODE_ENV === 'production' ? '1d' : '1h',
-        etag: true,
-        lastModified: true,
-    })
-);
+// Initialize chat controller with lazy loading
+let chatController = null;
 
-// Chat Controller Initialization
-const chatController = new ChatController();
-await chatController.initializeIfNeeded().catch(console.error);
+// Lazy initialize controller only when needed
+const getChatController = async () => {
+    if (!chatController) {
+        chatController = new ChatController();
+        await chatController.initializeIfNeeded();
+    }
+    return chatController;
+};
 
-// API Routes
+// API Routes with memory management
 app.post('/api/chat', async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://ragify.vercel.app');
     try {
-        await chatController.handleChatRequest(req, res);
+        const controller = await getChatController();
+        await controller.handleChatRequest(req, res);
+
+        // Log memory usage after each request in production
+        if (NODE_ENV === 'production') {
+            logMemoryUsage();
+        }
     } catch (error) {
         console.error('Chat request error:', error);
         res.status(500).json({ error: 'Chat processing failed' });
@@ -92,56 +90,46 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', 'https://ragify.vercel.app');
     res.json({
         status: 'healthy',
         environment: NODE_ENV,
-        timestamp: new Date().toISOString(),
+        memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024 + 'MB'
     });
 });
 
-// Favicon Handling
-app.get('/favicon.ico', (req, res) => res.status(204));
-
-// Error Handling Middleware
-app.use((req, res) => {
-    res.status(404).json({ error: 'Not Found' });
-});
-
+// Error handling
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
-    console.error('Error stack:', err.stack);
     res.status(500).json({
         error: 'Server Error',
         message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
     });
 });
 
-// Server Initialization
+// Server initialization
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT} (${NODE_ENV})`);
+    logMemoryUsage();
 });
 
-// Graceful Shutdown Handlers
+// Graceful shutdown with memory cleanup
+const cleanup = () => {
+    if (chatController) {
+        // Add cleanup logic for transformers if needed
+        chatController = null;
+    }
+    global.gc && global.gc(); // Force garbage collection if available
+};
+
 ['SIGTERM', 'SIGINT'].forEach((signal) => {
     process.on(signal, () => {
         console.log(`${signal} received: closing server`);
+        cleanup();
         server.close(() => {
             console.log('Server closed');
             process.exit(0);
         });
     });
-});
-
-// Unhandled Error Handlers
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
-    process.exit(1);
-});
-
-process.on('unhandledRejection', (error) => {
-    console.error('Unhandled Rejection:', error);
-    process.exit(1);
 });
 
 export default app;
