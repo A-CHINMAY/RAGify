@@ -80,16 +80,6 @@ if (NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-// Serve Static Files (Optional for API-only backend)
-// Remove if not required
-app.use(
-    express.static(path.join(__dirname, 'public'), {
-        maxAge: NODE_ENV === 'production' ? '1d' : '1h',
-        etag: true,
-        lastModified: true,
-    })
-);
-
 // Chat Controller Initialization
 const chatController = new ChatController();
 chatController.initializeIfNeeded().catch(console.error);
