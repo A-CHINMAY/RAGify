@@ -67,6 +67,7 @@ app.use(
             if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
                 callback(null, true);
             } else {
+                console.log('Blocked by CORS:', origin);  // Log the blocked origin for debugging
                 callback(new Error('Not allowed by CORS'));
             }
         },
@@ -75,10 +76,23 @@ app.use(
     })
 );
 
+// Handle Preflight Requests (OPTIONS requests)
+app.options('*', cors());
+
 // Conditional Logging
 if (NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
+
+// Serve Static Files (Optional for API-only backend)
+// Remove if not required
+app.use(
+    express.static(path.join(__dirname, 'public'), {
+        maxAge: NODE_ENV === 'production' ? '1d' : '1h',
+        etag: true,
+        lastModified: true,
+    })
+);
 
 // Chat Controller Initialization
 const chatController = new ChatController();
