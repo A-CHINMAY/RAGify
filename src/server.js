@@ -29,12 +29,21 @@ app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Simplified CORS
 app.use(cors({
-    origin: ['https://ragify.vercel.app', 'http://localhost:3000'],
-    methods: ['GET', 'POST'],
-    credentials: true
+    origin: ['https://ragify.vercel.app'],  // Allow specific origin
+    methods: ['GET', 'POST', 'OPTIONS'],   // Allow GET, POST, OPTIONS methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers in the request
+    credentials: true                      // Allow credentials if needed
 }));
+
+// Handle the OPTIONS preflight request
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);  // Allow dynamic origin
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Allow specific methods
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specific headers
+    res.header('Access-Control-Allow-Credentials', 'true'); // Allow credentials if needed
+    res.send();
+});
 
 // Lightweight Helmet config
 app.use(helmet({
