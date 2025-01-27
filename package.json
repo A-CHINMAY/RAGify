@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "modemon server.js"
+    "dev": "nodemon server.js",
+    "build": "npm install"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,7 @@
     "helmet": "^8.0.0",
     "morgan": "^1.10.0",
     "natural": "^8.0.1",
+    "nodemon": "^3.1.7",
     "ragify": "file:",
     "transformers": "^3.1.0"
   },
