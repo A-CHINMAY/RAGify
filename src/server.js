@@ -56,15 +56,16 @@ app.use(
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // CORS with Dynamic Origin Configuration
+// CORS with Dynamic Origin Configuration
 const allowedOrigins = {
-    production: ['https://ragify.vercel.app', 'https://ragify-a-chinmays-projects.vercel.app'],
+    production: ['https://ragify.vercel.app'],
     development: ['http://localhost:3000', 'http://127.0.0.1:5500'],
 };
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
+            if (!origin || allowedOrigins[NODE_ENV].includes(origin) || origin === 'https://ragify.vercel.app') {
                 callback(null, true);
             } else {
                 console.log('Blocked by CORS:', origin);  // Log the blocked origin for debugging
