@@ -1,15 +1,15 @@
 [
     {
         "question": "What is your name?",
-        "answer": "My name is Chinmay Patel."
+        "answer": "My name is Chinmay ."
     },
     {
         "question": "Where are you from?",
-        "answer": "I am from Pune, Maharashtra."
+        "answer": "I am from Tumkur, Karnataka."
     },
     {
         "question": "What college do you attend?",
-        "answer": "I attend G.H. Raisoni College of Engineering, Nagpur."
+        "answer": "I attend SJCIT College "
     },
     {
         "question": "What is your degree?",
@@ -17,7 +17,7 @@
     },
     {
         "question": "What is your CGPA?",
-        "answer": "My CGPA is 8.5."
+        "answer": "My CGPA is 9.85."
     },
     {
         "question": "What programming languages do you know?",
@@ -29,7 +29,7 @@
     },
     {
         "question": "What is your favorite programming language?",
-        "answer": "My favorite programming language is Python."
+        "answer": "My favorite programming language is Java."
     },
     {
         "question": "What do you like to do in your free time?",
@@ -49,7 +49,7 @@
     },
     {
         "question": "Tell me more about your college?",
-        "answer": "My college, G.H. Raisoni College of Engineering, is known for its excellent programs in engineering and technology."
+        "answer": "My college, SJCIT , is known for its excellent programs in engineering and technology."
     },
     {
         "question": "What is your hobby?",
