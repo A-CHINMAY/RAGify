@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import ChatController from './src/controllers/chatController.js';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -16,6 +17,12 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Ensure the cache directory exists for transformers library
+const cacheDir = path.join(__dirname, 'node_modules/@xenova/transformers/.cache');
+if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true });
+}
 
 // Enhanced Security Middleware
 app.use(helmet({
@@ -111,6 +118,7 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
+    console.error('Error stack:', err.stack);  // Log the stack trace for more insight
     res.status(500).json({
         error: 'Server Error',
         message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message
