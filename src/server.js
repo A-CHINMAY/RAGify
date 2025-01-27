@@ -25,14 +25,16 @@ if (!fs.existsSync(cacheDir)) {
 }
 
 // Enhanced Security Middleware
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-        }
-    }
-}));
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+            },
+        },
+    })
+);
 
 // More Dynamic Rate Limiting
 const limiter = rateLimit({
@@ -45,41 +47,48 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Middleware Configurations
-app.use(express.json({
-    limit: process.env.PAYLOAD_LIMIT || '10kb',
-    strict: true
-}));
+app.use(
+    express.json({
+        limit: process.env.PAYLOAD_LIMIT || '10kb',
+        strict: true,
+    })
+);
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // CORS with Dynamic Origin Configuration
 const allowedOrigins = {
-    production: ['https://ragify.vercel.app/', 'https://ragify-a-chinmays-projects.vercel.app/'],
-    development: ['http://localhost:3000', 'http://127.0.0.1:5500']
+    production: ['https://ragify.vercel.app', 'https://ragify-a-chinmays-projects.vercel.app'],
+    development: ['http://localhost:3000', 'http://127.0.0.1:5500'],
 };
 
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+);
 
 // Conditional Logging
 if (NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-// Serve Static Files from the Correct Directory
-app.use(express.static(path.join(__dirname, 'public'), {
-    maxAge: NODE_ENV === 'production' ? '1d' : '1h',
-    etag: true,
-    lastModified: true
-}));
+// Serve Static Files (Optional for API-only backend)
+// Remove if not required
+app.use(
+    express.static(path.join(__dirname, 'public'), {
+        maxAge: NODE_ENV === 'production' ? '1d' : '1h',
+        etag: true,
+        lastModified: true,
+    })
+);
 
 // Chat Controller Initialization
 const chatController = new ChatController();
@@ -99,17 +108,17 @@ app.get('/api/health', (req, res) => {
     res.json({
         status: 'healthy',
         environment: NODE_ENV,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
+});
+
+// Redirect Root to Frontend
+app.get('/', (req, res) => {
+    res.redirect('https://ragify.vercel.app'); // Update with your Vercel frontend URL
 });
 
 // Favicon Handling (Optional)
 app.get('/favicon.ico', (req, res) => res.status(204));
-
-// Fallback Route to Serve index.html
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 // Error Handling Middleware
 app.use((req, res) => {
@@ -118,10 +127,10 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
-    console.error('Error stack:', err.stack);  // Log the stack trace for more insight
+    console.error('Error stack:', err.stack); // Log the stack trace for more insight
     res.status(500).json({
         error: 'Server Error',
-        message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message
+        message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
     });
 });
 
@@ -131,7 +140,7 @@ const server = app.listen(PORT, () => {
 });
 
 // Graceful Shutdown Handlers
-['SIGTERM', 'SIGINT'].forEach(signal => {
+['SIGTERM', 'SIGINT'].forEach((signal) => {
     process.on(signal, () => {
         console.log(`${signal} received: closing server`);
         server.close(() => {

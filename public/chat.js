@@ -3,33 +3,33 @@ const chatMessages = document.getElementById('chat-messages');
 const sendButton = document.getElementById('send-btn');
 
 // Event Listeners
-sendButton.addEventListener('click', sendMessage);
+sendButton.addEventListener('click', handleSendMessage);
 userInputField.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        sendMessage();
+        handleSendMessage();
     }
 });
 
-// Function to send the message
-function sendMessage() {
+// Function to handle sending messages
+function handleSendMessage() {
     const userInput = userInputField.value.trim();
-    if (userInput === '') return;
+    if (!userInput) return;
 
     displayMessage(userInput, 'user');
     userInputField.value = ''; // Clear input field
-    userInputField.focus(); // Focus on the input field after sending message
+    userInputField.focus(); // Focus on the input field after sending the message
 
-    // Disable input during request
-    disableInput(true);
+    // Disable input during processing
+    toggleInputState(true);
 
-    // Display thinking message
-    displayThinking();
+    // Display "thinking..." message
+    showThinkingMessage();
 
-    // Generate bot response (simulating async behavior)
+    // Generate bot response
     generateBotResponse(userInput);
 }
 
-// Function to display the message
+// Function to display a message
 function displayMessage(message, sender) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', sender);
@@ -41,7 +41,7 @@ function displayMessage(message, sender) {
     scrollToBottom(); // Ensure chat scrolls to the bottom when a new message is added
 }
 
-// Escape HTML to avoid XSS
+// Escape HTML to avoid XSS attacks
 function escapeHtml(unsafe) {
     return unsafe
         .replace(/&/g, "&amp;")
@@ -52,25 +52,25 @@ function escapeHtml(unsafe) {
 }
 
 // Function to show the "thinking..." message
-function displayThinking() {
+function showThinkingMessage() {
     const thinkingElement = document.createElement('div');
     thinkingElement.classList.add('message', 'bot', 'thinking');
     thinkingElement.textContent = 'Thinking...';
     thinkingElement.id = 'thinking-message';
     chatMessages.appendChild(thinkingElement);
-    scrollToBottom(); // Scroll to bottom after adding thinking message
+    scrollToBottom();
 
     sendButton.textContent = 'Thinking...';
     sendButton.disabled = true;
 }
 
-// Function to scroll to the bottom of the chat container
+// Function to scroll the chat container to the bottom
 function scrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Disable input field and send button
-function disableInput(disabled) {
+// Function to toggle input and button states
+function toggleInputState(disabled) {
     userInputField.disabled = disabled;
     sendButton.disabled = disabled;
     if (!disabled) {
@@ -80,8 +80,13 @@ function disableInput(disabled) {
 
 // Function to generate bot response
 async function generateBotResponse(userInput) {
+    const apiUrl =
+        window.location.hostname === 'localhost'
+            ? 'http://localhost:3000/api/chat'
+            : 'https://ragify.onrender.com/api/chat';
+
     try {
-        const response = await fetch('http://localhost:3000/api/chat', {
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -89,45 +94,45 @@ async function generateBotResponse(userInput) {
             body: JSON.stringify({ query: userInput })
         });
 
-        // Remove "thinking..." message after receiving response
+        // Remove "thinking..." message
         const thinkingMessage = document.getElementById('thinking-message');
         if (thinkingMessage) {
             thinkingMessage.remove();
         }
 
         const data = await response.json();
-        const botResponse = data.response && data.response.trim() ? data.response : "Sorry, I couldn't understand that.";
+        const botResponse = data.response?.trim() || "Sorry, I couldn't understand that.";
 
         // Display the bot response after a delay
         setTimeout(() => {
             displayMessage(botResponse, 'bot');
-        }, 1000); // 1-second delay before bot responds
+        }, 1000); // 1-second delay
     } catch (error) {
-        console.error("Error:", error);
-        displayMessage("Sorry, there was an error processing your request.", 'bot');
+        console.error('Error:', error);
+        displayMessage('Sorry, there was an error processing your request.', 'bot');
     } finally {
-        // Re-enable input
-        disableInput(false);
+        toggleInputState(false); // Re-enable input
     }
 }
 
-
-
-// Function to generate random position and assign to shapes
+// Function to set random positions for shapes
 function setRandomPositions() {
     const shapes = document.querySelectorAll('.shape');
 
-    shapes.forEach(shape => {
-        // Generate random positions within the window
-        const randomX = Math.floor(Math.random() * window.innerWidth) + "px";
-        const randomY = Math.floor(Math.random() * window.innerHeight) + "px";
+    shapes.forEach((shape) => {
+        const shapeWidth = shape.offsetWidth;
+        const shapeHeight = shape.offsetHeight;
 
-        // Apply random position as CSS variables for each shape
-        shape.style.setProperty('--random-x', randomX);
-        shape.style.setProperty('--random-y', randomY);
+        // Generate random positions within the visible area
+        const randomX = Math.max(0, Math.random() * (window.innerWidth - shapeWidth));
+        const randomY = Math.max(0, Math.random() * (window.innerHeight - shapeHeight));
+
+        // Apply random position as CSS variables
+        shape.style.setProperty('--random-x', `${randomX}px`);
+        shape.style.setProperty('--random-y', `${randomY}px`);
     });
 }
 
-// Set random positions on page load and periodically adjust
-window.onload = setRandomPositions;
-window.onresize = setRandomPositions;
+// Set random positions on page load and adjust on window resize
+window.addEventListener('load', setRandomPositions);
+window.addEventListener('resize', setRandomPositions);
