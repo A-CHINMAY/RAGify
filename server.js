@@ -18,14 +18,16 @@ const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Enhanced Security Middleware
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-        }
-    }
-}));
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+            },
+        },
+    })
+);
 
 // More Dynamic Rate Limiting
 const limiter = rateLimit({
@@ -38,29 +40,35 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Middleware Configurations
-app.use(express.json({
-    limit: process.env.PAYLOAD_LIMIT || '10kb',
-    strict: true
-}));
+app.use(
+    express.json({
+        limit: process.env.PAYLOAD_LIMIT || '10kb',
+        strict: true,
+    })
+);
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // CORS with Dynamic Origin Configuration
 const allowedOrigins = {
     production: ['https://yourfrontenddomain.com'],
-    development: ['http://localhost:3000', 'http://127.0.0.1:5500']
+    development: ['http://localhost:3000', 'http://127.0.0.1:5500'],
 };
 
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
+                callback(null, true);
+            } else {
+                console.error(`Blocked by CORS: Origin ${origin}`);
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
+    })
+);
 
 // Conditional Logging
 if (NODE_ENV === 'development') {
@@ -68,23 +76,36 @@ if (NODE_ENV === 'development') {
 }
 
 // Static File Serving with Enhanced Caching
-app.use(express.static(path.join(__dirname, 'public'), {
-    maxAge: NODE_ENV === 'production' ? '1d' : '1h',
-    etag: true,
-    lastModified: true
-}));
+app.use(
+    express.static(path.join(__dirname, 'public'), {
+        maxAge: NODE_ENV === 'production' ? '1d' : '0',
+        etag: true,
+        lastModified: true,
+    })
+);
 
 // Chat Controller Initialization
 const chatController = new ChatController();
 chatController.initializeIfNeeded().catch(console.error);
 
+// Debug Memory Usage
+setInterval(() => {
+    const used = process.memoryUsage();
+    console.log(
+        `Memory Usage: RSS=${(used.rss / 1024 / 1024).toFixed(
+            2
+        )} MB, Heap=${(used.heapUsed / 1024 / 1024).toFixed(2)} MB`
+    );
+}, 10000); // Log memory usage every 10 seconds
+
 // API Routes
 app.post('/api/chat', async (req, res) => {
     try {
+        console.log(`Request Body: ${JSON.stringify(req.body)}`);
         await chatController.handleChatRequest(req, res);
     } catch (error) {
         console.error('Chat request error:', error);
-        res.status(500).json({ error: 'Chat processing failed' });
+        res.status(500).json({ error: 'Chat processing failed', details: error.message });
     }
 });
 
@@ -92,7 +113,7 @@ app.get('/api/health', (req, res) => {
     res.json({
         status: 'healthy',
         environment: NODE_ENV,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
 });
 
@@ -110,7 +131,7 @@ app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     res.status(500).json({
         error: 'Server Error',
-        message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message
+        message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
     });
 });
 
@@ -120,9 +141,14 @@ const server = app.listen(PORT, () => {
 });
 
 // Graceful Shutdown Handlers
-['SIGTERM', 'SIGINT'].forEach(signal => {
-    process.on(signal, () => {
+['SIGTERM', 'SIGINT'].forEach((signal) => {
+    process.on(signal, async () => {
         console.log(`${signal} received: closing server`);
+        try {
+            await chatController.close(); // Ensure chatController cleanup (if applicable)
+        } catch (error) {
+            console.error('Error during shutdown:', error);
+        }
         server.close(() => {
             console.log('Server closed');
             process.exit(0);
