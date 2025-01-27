@@ -10,7 +10,7 @@ class ChatController {
         this.isInitialized = false;
         this.documentsPath = path.resolve(
             path.dirname(fileURLToPath(import.meta.url)),
-            '../../data/documents'
+            '../../src/data/documents'
         );
     }
 

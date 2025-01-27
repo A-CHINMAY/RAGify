@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import ChatController from './src/controllers/chatController.js';
+import ChatController from './controllers/chatController.js';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 
@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // CORS with Dynamic Origin Configuration
 const allowedOrigins = {
-    production: ['https://yourfrontenddomain.com'],
+    production: ['https://ragify.vercel.app/','https://ragify-a-chinmays-projects.vercel.app/'],
     development: ['http://localhost:3000', 'http://127.0.0.1:5500']
 };
 
