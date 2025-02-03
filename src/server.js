@@ -44,9 +44,13 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
+// Dynamic CORS Configuration for Separate Hosting
 const allowedOrigins = {
-    production: ['https://ra-gify.vercel.app/'],
-    development: ['http://localhost:3000', 'http://127.0.0.1:5500']  // Updated to remove /public
+    production: [
+        'https://your-frontend-vercel-url.vercel.app', // Replace with your actual frontend URL
+        'https://your-backend-vercel-url.vercel.app'   // Replace with your actual backend URL
+    ],
+    development: ['http://localhost:3000', 'http://127.0.0.1:5500']
 };
 
 app.use(cors({
@@ -62,18 +66,12 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-
 // Conditional Logging
 if (NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-// Static File Serving with Enhanced Caching
-app.use(express.static(path.join(__dirname, 'public'), {
-    maxAge: NODE_ENV === 'production' ? '1d' : '1h',
-    etag: true,
-    lastModified: true
-}));
+// Remove static file serving middleware
 
 // Chat Controller Initialization
 const chatController = new ChatController();
@@ -97,10 +95,7 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Fallback Routes
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Remove fallback routes
 
 // Error Handling Middleware
 app.use((req, res) => {
