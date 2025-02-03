@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.use(cors({
-    origin: ['https://ragify.vercel.app'],  // Allow specific origin
+    origin: ['https://ragify.vercel.app/'],  // Allow specific origin
     methods: ['GET', 'POST', 'OPTIONS'],   // Allow GET, POST, OPTIONS methods
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers in the request
     credentials: true                      // Allow credentials if needed
