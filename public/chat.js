@@ -77,9 +77,7 @@ function handleApiError(error) {
 
 // Function to generate bot response
 async function generateBotResponse(userInput) {
-    const apiUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:3000/api/chat'
-        : 'https://ragify.onrender.com/api/chat';
+    const apiUrl = '/api/chat' ;
 
     const retries = 3; // Number of retry attempts
     let attempt = 0;
