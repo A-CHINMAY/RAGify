@@ -50,7 +50,7 @@ function disableInput(disabled) {
 
 async function generateBotResponse(userInput) {
     try {
-        const response = await fetch('http://localhost:3000/api/chat', {
+        const response = await fetch('https://ra-gify.vercel.app/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
