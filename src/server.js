@@ -7,92 +7,82 @@ import rateLimit from 'express-rate-limit';
 import ChatController from './controllers/chatController.js';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
-import fs from 'fs';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Memory usage monitoring
-const logMemoryUsage = () => {
-    const used = process.memoryUsage();
-    console.log('Memory usage:');
-    for (let key in used) {
-        console.log(`${key}: ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-    }
-};
-
 const app = express();
-app.set('trust proxy', 1);
-
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-app.use(cors({
-    origin: '*',  // Allow all origins or replace with specific domain, e.g., 'https://ragify.vercel.app'
-    methods: ['GET', 'POST', 'OPTIONS'],   // Allow GET, POST, OPTIONS methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers in the request
-    credentials: true                      // Allow credentials if needed
-}));
-
-
-// Handle the OPTIONS preflight request
-app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin);  // Allow dynamic origin
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Allow specific methods
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specific headers
-    res.header('Access-Control-Allow-Credentials', 'true'); // Allow credentials if needed
-    res.send();
-});
-
-// Lightweight Helmet config
+// Enhanced Security Middleware
 app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: false
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+        }
+    }
 }));
 
-// Memory-conscious rate limiting
+// More Dynamic Rate Limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 50, // Reduced from 100 to 50 for free tier
+    windowMs: NODE_ENV === 'production' ? 15 * 60 * 1000 : 30 * 60 * 1000,
+    max: NODE_ENV === 'production' ? 100 : 500,
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    message: 'Rate limit exceeded. Please try again later.',
 });
 app.use('/api/', limiter);
 
-// Reduced payload limits
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+// Middleware Configurations
+app.use(express.json({
+    limit: process.env.PAYLOAD_LIMIT || '10kb',
+    strict: true
+}));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Conditional logging only in development
+const allowedOrigins = {
+    production: ['https://ra-gify.vercel.app/'],
+    development: ['http://localhost:3000', 'http://127.0.0.1:5500']  // Updated to remove /public
+};
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Handle requests from the allowed origins
+        if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+// Conditional Logging
 if (NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-// Initialize chat controller with lazy loading
-let chatController = null;
+// Static File Serving with Enhanced Caching
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: NODE_ENV === 'production' ? '1d' : '1h',
+    etag: true,
+    lastModified: true
+}));
 
-// Lazy initialize controller only when needed
-const getChatController = async () => {
-    if (!chatController) {
-        chatController = new ChatController();
-        await chatController.initializeIfNeeded();
-    }
-    return chatController;
-};
+// Chat Controller Initialization
+const chatController = new ChatController();
+chatController.initializeIfNeeded().catch(console.error);
 
-// API Routes with memory management
+// API Routes
 app.post('/api/chat', async (req, res) => {
     try {
-        const controller = await getChatController();
-        await controller.handleChatRequest(req, res);
-
-        // Log memory usage after each request in production
-        if (NODE_ENV === 'production') {
-            logMemoryUsage();
-        }
+        await chatController.handleChatRequest(req, res);
     } catch (error) {
         console.error('Chat request error:', error);
         res.status(500).json({ error: 'Chat processing failed' });
@@ -103,43 +93,53 @@ app.get('/api/health', (req, res) => {
     res.json({
         status: 'healthy',
         environment: NODE_ENV,
-        memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024 + 'MB'
+        timestamp: new Date().toISOString()
     });
 });
 
-// Error handling
+// Fallback Routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Error Handling Middleware
+app.use((req, res) => {
+    res.status(404).json({ error: 'Not Found' });
+});
+
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     res.status(500).json({
         error: 'Server Error',
-        message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
+        message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message
     });
 });
 
-// Server initialization
+// Server Initialization
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT} (${NODE_ENV})`);
-    logMemoryUsage();
 });
 
-// Graceful shutdown with memory cleanup
-const cleanup = () => {
-    if (chatController) {
-        // Add cleanup logic for transformers if needed
-        chatController = null;
-    }
-    global.gc && global.gc(); // Force garbage collection if available
-};
-
-['SIGTERM', 'SIGINT'].forEach((signal) => {
+// Graceful Shutdown Handlers
+['SIGTERM', 'SIGINT'].forEach(signal => {
     process.on(signal, () => {
         console.log(`${signal} received: closing server`);
-        cleanup();
         server.close(() => {
             console.log('Server closed');
             process.exit(0);
         });
     });
+});
+
+// Unhandled Error Handlers
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
+    process.exit(1);
 });
 
 export default app;
