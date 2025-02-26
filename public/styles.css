@@ -27,6 +27,7 @@ body {
     transition: all 0.3s ease;
 }
 
+
 .title {
     background: linear-gradient(135deg, #4a4a8a, #6a6aff);
     color: #ffffff;
@@ -45,10 +46,10 @@ body {
     flex-grow: 1;
     padding: 20px;
     overflow-y: auto;
-    max-height: calc(100vh - 140px);
-    /* Adjust to leave space for input box */
-    padding-bottom: 20px;
-    /* Add space for smooth scrolling */
+    max-height: calc(100vh - 200px);
+    /* Increased to leave more space for input */
+    padding-bottom: 80px;
+    /* Add significant padding at the bottom */
     display: flex;
     flex-direction: column;
 }
@@ -66,6 +67,7 @@ body {
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
+
 /* Styling for the scrollbar in Firefox */
 .chat-box {
     scrollbar-width: thin;
@@ -113,8 +115,11 @@ body {
     justify-content: space-between;
     align-items: center;
     position: absolute;
+    /* Keep absolute positioning */
     bottom: 0;
     left: 0;
+    z-index: 10;
+    /* Ensure it's above other elements */
 }
 
 #user-input {
@@ -260,205 +265,265 @@ body {
     width: 30px;
     height: 30px;
     animation-duration: 10s;
+    top: 10%;
+    left: 20%;
 }
 
 .shape2 {
     width: 40px;
     height: 40px;
     animation-duration: 9s;
+    top: 15%;
+    left: 80%;
 }
 
 .shape3 {
     width: 35px;
     height: 35px;
     animation-duration: 11s;
+    top: 25%;
+    left: 40%;
 }
 
 .shape4 {
     width: 25px;
     height: 25px;
     animation-duration: 8s;
+    top: 35%;
+    left: 60%;
 }
 
 .shape5 {
     width: 30px;
     height: 30px;
     animation-duration: 7s;
+    top: 45%;
+    left: 30%;
 }
 
 .shape6 {
     width: 45px;
     height: 45px;
     animation-duration: 12s;
+    top: 55%;
+    left: 70%;
 }
 
 .shape7 {
     width: 32px;
     height: 32px;
     animation-duration: 10s;
+    top: 65%;
+    left: 20%;
 }
 
 .shape8 {
     width: 28px;
     height: 28px;
     animation-duration: 13s;
+    top: 75%;
+    left: 50%;
 }
 
 .shape9 {
     width: 38px;
     height: 38px;
     animation-duration: 14s;
+    top: 85%;
+    left: 80%;
 }
 
 .shape10 {
     width: 22px;
     height: 22px;
     animation-duration: 15s;
+    top: 90%;
+    left: 40%;
 }
 
 .shape11 {
     width: 33px;
     height: 33px;
     animation-duration: 10s;
+    top: 5%;
+    left: 60%;
 }
 
 .shape12 {
     width: 27px;
     height: 27px;
     animation-duration: 8s;
+    top: 30%;
+    left: 90%;
 }
 
 .shape13 {
     width: 36px;
     height: 36px;
     animation-duration: 9s;
+    top: 70%;
+    left: 10%;
 }
 
 .shape14 {
     width: 29px;
     height: 29px;
     animation-duration: 11s;
+    top: 40%;
+    left: 50%;
 }
 
 .shape15 {
     width: 40px;
     height: 40px;
     animation-duration: 12s;
+    top: 20%;
+    left: 30%;
 }
 
 .shape16 {
     width: 34px;
     height: 34px;
     animation-duration: 8s;
+    top: 60%;
+    left: 40%;
 }
 
 .shape17 {
     width: 31px;
     height: 31px;
     animation-duration: 10s;
+    top: 80%;
+    left: 60%;
 }
 
 .shape18 {
     width: 25px;
     height: 25px;
     animation-duration: 9s;
+    top: 50%;
+    left: 75%;
 }
 
 .shape19 {
     width: 39px;
     height: 39px;
     animation-duration: 13s;
+    top: 15%;
+    left: 45%;
 }
 
 .shape20 {
     width: 28px;
     height: 28px;
     animation-duration: 12s;
+    top: 95%;
+    left: 25%;
 }
 
 .shape21 {
     width: 42px;
     height: 42px;
     animation-duration: 10s;
+    top: 75%;
+    left: 90%;
 }
 
 .shape22 {
     width: 30px;
     height: 30px;
     animation-duration: 7s;
+    top: 35%;
+    left: 15%;
 }
 
 .shape23 {
     width: 44px;
     height: 44px;
     animation-duration: 12s;
+    top: 55%;
+    left: 95%;
 }
 
 .shape24 {
     width: 38px;
     height: 38px;
     animation-duration: 15s;
+    top: 25%;
+    left: 10%;
 }
 
 .shape25 {
     width: 33px;
     height: 33px;
     animation-duration: 9s;
+    top: 45%;
+    left: 65%;
 }
 
 .shape26 {
     width: 27px;
     height: 27px;
     animation-duration: 11s;
+    top: 65%;
+    left: 35%;
 }
 
 .shape27 {
     width: 29px;
     height: 29px;
     animation-duration: 8s;
+    top: 85%;
+    left: 5%;
 }
 
 .shape28 {
     width: 31px;
     height: 31px;
     animation-duration: 10s;
+    top: 10%;
+    left: 55%;
 }
 
 .shape29 {
     width: 35px;
     height: 35px;
     animation-duration: 13s;
+    top: 95%;
+    left: 75%;
 }
 
 .shape30 {
     width: 41px;
     height: 41px;
     animation-duration: 9s;
+    top: 30%;
+    left: 25%;
 }
 
 /* Roaming Animation for the Shapes */
 @keyframes roamAround {
     0% {
-        transform: translate(var(--random-x), var(--random-y));
+        transform: translate(0, 0);
     }
 
     20% {
-        transform: translate(calc(var(--random-x) + 10vw), calc(var(--random-y) + 10vh));
+        transform: translate(20vw, 20vh);
     }
 
     40% {
-        transform: translate(calc(var(--random-x) + 20vw), calc(var(--random-y) + 20vh));
+        transform: translate(40vw, 10vh);
     }
 
     60% {
-        transform: translate(calc(var(--random-x) + 30vw), calc(var(--random-y) + 30vh));
+        transform: translate(20vw, 30vh);
     }
 
     80% {
-        transform: translate(calc(var(--random-x) + 40vw), calc(var(--random-y) + 40vh));
+        transform: translate(10vw, 40vh);
     }
 
     100% {
-        transform: translate(calc(var(--random-x) + 50vw), calc(var(--random-y) + 50vh));
+        transform: translate(0, 0);
     }
 }

@@ -27,10 +27,10 @@ app.use(helmet({
     }
 }));
 
-// More Dynamic Rate Limiting
+// Rate Limiting - Simplified
 const limiter = rateLimit({
-    windowMs: NODE_ENV === 'production' ? 15 * 60 * 1000 : 30 * 60 * 1000,
-    max: NODE_ENV === 'production' ? 100 : 500,
+    windowMs: 30 * 60 * 1000, // 30 minutes
+    max: 500, // Reasonable limit for local development
     standardHeaders: true,
     legacyHeaders: false,
     message: 'Rate limit exceeded. Please try again later.',
@@ -44,34 +44,12 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Dynamic CORS Configuration for Separate Hosting
-const allowedOrigins = {
-    production: [
-        'https://your-frontend-vercel-url.vercel.app', // Replace with your actual frontend URL
-        'https://your-backend-vercel-url.vercel.app'   // Replace with your actual backend URL
-    ],
-    development: ['http://localhost:3000', 'http://127.0.0.1:5500']
-};
+// Enable CORS for all origins - simplified
+app.use(cors());
+console.log('CORS enabled for all origins');
 
-app.use(cors({
-    origin: (origin, callback) => {
-        // Handle requests from the allowed origins
-        if (!origin || allowedOrigins[NODE_ENV].includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// Conditional Logging
-if (NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-}
-
-// Remove static file serving middleware
+// Logging
+app.use(morgan('dev'));
 
 // Chat Controller Initialization
 const chatController = new ChatController();
@@ -90,12 +68,9 @@ app.post('/api/chat', async (req, res) => {
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'healthy',
-        environment: NODE_ENV,
         timestamp: new Date().toISOString()
     });
 });
-
-// Remove fallback routes
 
 // Error Handling Middleware
 app.use((req, res) => {
@@ -106,13 +81,13 @@ app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     res.status(500).json({
         error: 'Server Error',
-        message: NODE_ENV === 'production' ? 'Internal Server Error' : err.message
+        message: err.message
     });
 });
 
 // Server Initialization
 const server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} (${NODE_ENV})`);
+    console.log(`Server running on port ${PORT}`);
 });
 
 // Graceful Shutdown Handlers

@@ -2,6 +2,9 @@ const userInputField = document.getElementById('user-input');
 const chatMessages = document.getElementById('chat-messages');
 const sendButton = document.getElementById('send-btn');
 
+// API base URL configuration
+const API_BASE_URL = 'http://localhost:3000'; // Adjust this to match your backend server port
+
 // Event Listeners
 sendButton.addEventListener('click', sendMessage);
 userInputField.addEventListener('keypress', (e) => {
@@ -50,7 +53,8 @@ function disableInput(disabled) {
 
 async function generateBotResponse(userInput) {
     try {
-        const response = await fetch('/api/chat', {
+        console.log("Sending request to server...");
+        const response = await fetch('http://localhost:3000/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -58,25 +62,27 @@ async function generateBotResponse(userInput) {
             body: JSON.stringify({ query: userInput })
         });
 
-        // Remove "thinking..." message
+        console.log("Server response status:", response.status);
+
+        // Remove thinking message
         const thinkingMessage = document.getElementById('thinking-message');
         if (thinkingMessage) {
             thinkingMessage.remove();
         }
 
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error(`Server error: ${response.status}`);
         }
 
         const data = await response.json();
-        const botResponse = data.response || "Sorry, I couldn't understand that.";
+        console.log("Server response data:", data);
 
+        const botResponse = data.response || "Sorry, I couldn't understand that.";
         displayMessage(botResponse, 'bot');
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error details:", error);
         displayMessage("Sorry, there was an error processing your request.", 'bot');
     } finally {
-        // Re-enable input
         disableInput(false);
     }
 }
